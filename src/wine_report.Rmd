@@ -1,0 +1,257 @@
+---
+title: Red Wine Quality Data Analysis 🍷
+author: Sara Al-Qahtani
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+editor_options: 
+  chunk_output_type: console
+knit: (function(input, ...) {rmarkdown::render(input, output_dir = "../")})
+---
+# Data
+| Variable|Description |
+| :------- |:--------------------------- |
+| Fixed Acidity | Acids are one of the fundamental properties of wine and contribute greatly to the taste of the wine. **Reducing acids significantly might lead to wines tasting flat**. Its concentration is expressed in the dataset in $\frac{g(Tartaric Acid)}{dm^3}$.|
+| Volatile Acidity |These acids are to be distilled out from the wine before completing the production process. **Excess of volatile acids are undesirable and lead to unpleasant flavor**. Its concentration is expressed in the dataset in $\frac{g(Acetic Acid)}{dm^3}$.|
+| Citric Acid | Usually, **most of it is consumed during the fermentation process and sometimes it is added separately to *give the wine more freshness.* ** Its concentration is expressed in the dataset in $\frac{g(Citric Acid)}{dm^3}$.|
+| Residual Sugar |  This typically refers to the natural sugar from grapes which remains after the fermentation process stops, or is stopped. Originally, the yeast feeds on these sugars to ferment and produce alcohol, therefore, **the higher is the sugar during fermentation, the more alcoholic the wine will be**. Its concentration is expressed in the dataset in $\frac{g}{dm^3}$.|
+| Chlorides |  Chlorides are a major contributor to *saltiness* in wine **which is an  undesirable taste for customers**. Presence of chlorides in grapes is attributed to factors concerning the grapes used to make the wine as well as the environmental condition in which grapes are grown. Its concentration is expressed in the dataset in $\frac{g}{dm^3}$.|
+| Free Sulfur Dioxide | This is the part of the sulphur dioxide that when added to a wine is said to be free after the remaining part binds. They're also known as sulfites, and **too much of it is undesirable and gives a pungent odor**. This variable is expressed in $\frac{mg}{dm^3}$ in the dataset. |
+| Total Sulfur Dioxide| This is the sum total of the bound and the free sulfur dioxide $SO_2$. This is mainly added to kill harmful bacteria and preserve quality and freshness. It's expressed in $\frac{mg}{dm^3}$.|
+| Density | This can be represented as a comparison of the weight of a specific volume of wine to an equivalent volume of water. **It is generally used as a measure of the conversion of sugar to alcohol**. Expressed in $\frac{g}{cm^3}$           |
+| pH |  A numeric scale to specify the acidity or basicity the wine. **Fixed acidity contributes the most towards the pH of wines.** The lesser than 7, the more acidic the liquid is, and most wines are in the range of 2.9 - 3.9. |
+| Sulphates | They are mineral salts and considered a regular part of the winemaking around the world since **they affect the wine aroma and flavor (i.e., they help preserve wine by inhibiting microbial growth)**. It's expressed in $\frac{g}{dm^3}$.           |
+| Alcohol | Alcohol is formed as a result of yeast converting sugar during the fermentation process. Higher alcohol content could mean a bottle is vintage, or the grapes fermented were ripe producing more sugar to fuel conversion from sugar to alcohol. **All of which is desirable by the consumer**. Measured in *% vol*. |
+| Quality | Wine experts graded the wine quality between 0 (very bad) and 10 (very excellent). **The eventual quality score is the median of at least three evaluations made by the same wine experts**.|
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(ggthemes)
+library(janitor)
+library(GGally)
+library(prettydoc)
+library(reactable)
+library(corrplot)
+library(patchwork)
+library(here)
+
+i_am("individual-assignment-2-saraahawi.Rproj")
+wine <- read_csv(here("./data/winequality-red.csv"))
+wine <- as_tibble(wine)
+wine <- distinct(wine)
+wine <- wine %>%
+  clean_names()
+```
+
+
+
+
+#### Now, let's take a  more in-depth look at our data!
+Feel free to help me explore the data, you can **search and filter columns** as you please. Scroll to the right to see the rest of the variables. 
+
+```{r echo=FALSE}
+reactable(wine, resizable = TRUE, filterable = TRUE, searchable = TRUE, highlight = TRUE, outlined = TRUE, striped = TRUE, showSortIcon = TRUE,
+          defaultColDef = colDef(
+    align = "center",
+    minWidth = 190,
+    headerStyle = list(background = "#4A99FF")))
+```
+
+<br>
+
+
+# Exploratory Data Analysis
+
+## Some of the questions I want to answer about my data are:
+### 1. Which variables have the most impact on quality? What sets good wine and bad wine apart?
+
+As a convention, I will set **|x| > 0.4 *(i.e., correlation values larger than 0.4 OR less than -0.4)* ** as a threshold for correlation significance.
+
+```{r echo=FALSE}
+
+corrplot(cor(wine), method = "color", type = "lower", is.corr = TRUE, mar=c(0,0,1,0),
+         title = 'Correlation Map for Dataset Variables',addCoef.col = TRUE,
+         tl.cex = 0.6, tl.col = 'black', number.cex=0.5)
+```
+
+<br>
+
+According to our convention, quality is mostly impacted by *alcohol content* and *volatile acidity*. How?
+Let's have our initial assumptions confirmed by a boxplot. 
+
+<br>
+
+```{r echo=FALSE}
+p1 <- wine %>% 
+  ggplot(aes(factor(quality),`alcohol`, group=quality)) +
+  geom_boxplot() +
+  xlab("Quality") + 
+  ylab("Alcohol") +
+  ggtitle("Alcohol & Quality") +
+  theme_economist()
+
+p2 <- wine %>% 
+  ggplot(aes(factor(quality), `volatile_acidity`, group=quality)) +
+  geom_boxplot() + 
+  xlab("Quality") + 
+  ylab("Volatile Acidity") +
+  ggtitle("Volatile Acidity & Quality") +
+  theme_economist()
+
+p1 + p2
+```
+
+Indeed, as the **alcohol content increases** the **quality increases**, hence, the correlation coefficient is positive and larger than 0.4. In contrast, as the **volatile acidity increases**, **quality decreases** as per the negative correlation coefficient. 
+
+<br>
+
+### 2. How are variables correlated amongst each other? 
+
+* ***Alcohol* and *density*** are negatively correlated which is scientifically proven. Alcohol is less dense than water, therefore, **higher alcohol content** leads to **lower density**.
+* ***Total sulfur dioxide* and *free sulfur dioxide*** are positively correlated since more total sulfur dioxide produces more free sulfur dioxide after binding.
+* ***Fixed acidity* and *density*** are positively correlated since *Tartaric Acid (naturally found in grapes)* is denser than water by a difference of 0.733 $g/cm^3$. 
+* ***pH* is negatively correlated with *fixed acidity* and *citric acid*** which is expected since **more acidic wines** have **lower pH**.
+
+**Note:** Volatile acidity does not show the same correlation with pH even though it expresses an acid concentration (acetic acid). This is attributed to the fact that this acid is to be distilled from the wine after fermentation because of its unpleasant flavor. So, the less of its concentration the better. 
+
+
+**We can say from here that a lower pH *might be* a positive contributor to wine quality since less acidic wines taste flat and stale (highly undesirable), therefore, *relatively* higher acid levels (fixed acidity (tartaric acid) and citric acids) are preferred. Also, density could be a positive contributor as well because it is inversely proportional to alcohol which is a direct contributor to quality, and it's directly proportional to fixed acidity. **  
+
+<br>
+
+### Are there any more hidden patterns? What are other variables that can have a less direct contribution to wine quality but affect it nonetheless? 
+
+If we look at how the quality scores are distributed in our data, we will see that around 80% of the observations in the dataset are either at 5 or 6, while 3, 4 and 7, 8 account for the remaining 20%. 
+
+```{r echo=FALSE}
+ggplot(wine,aes(quality)) + 
+  geom_bar(stat = "count") +
+  coord_flip() +
+  scale_x_continuous(breaks = seq(3,8)) +
+  xlab("Quality Score") + 
+  ylab("Count") +
+  ggtitle("Distribution of Wine Quality Scores") + 
+  theme_economist()
+```
+
+As a result, it will be hard to recognize important patterns across different quality scores because patterns associated with 5 and 6 will be the most dominant. So, the correlation map alone is not enough to tell for sure which variables mostly affect the quality. 
+
+To solve that problem, another classification scheme has to be implemented where wine quality scores are further divided into three tiers: ***Poor (scores : 3 & 4)*, *Mediocre (scores: 5 & 6)*, and *Excellent (scores: 7 & 8)***. 
+
+<br>
+The new distribution looks as such. 
+```{r include=FALSE}
+wine$quality_tier <- ifelse(wine$quality > 6,"Excellent", ifelse(wine$quality < 5, "Poor", "Mediocre"))
+Quality <- factor(wine$quality_tier)
+```
+
+
+```{r echo=FALSE}
+ggplot(wine, aes(quality_tier)) + 
+  geom_bar(stat = "count") +
+  coord_flip() +
+  xlab(label = NULL) + 
+  ylab("Count") +
+  ggtitle("Distribution of Wine Quality Tiers") + 
+  theme_economist()
+```
+
+#### Now we can see the effect of different variables on the quality tiers more clearly and accurately. Let's explore!
+
+```{r echo=FALSE}
+alc <- ggplot(wine,aes(x=alcohol,fill=Quality)) + 
+  geom_density(alpha=0.25) +
+  geom_vline(aes(xintercept=mean(alcohol[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(alcohol[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(alcohol[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  scale_x_continuous(breaks = seq(7,14,1))+
+  xlab(label = "Alcohol Level (%)") +
+  ylab(label = NULL) +
+  ggtitle("Distribution of Alcohol Levels")+
+  theme_economist()
+
+den <- ggplot(wine, aes(x = density,fill=Quality)) + 
+  geom_density(alpha=0.25) +
+  geom_vline(aes(xintercept=mean(density[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(density[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(density[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  xlab(label = "Density") +
+  ylab(label = NULL) +
+  ggtitle("Distribution of Density")+
+  theme_economist()
+
+alc / den 
+
+```
+
+These two variables distinguish Excellent (red) from Mediocre (green), and Poor (blue). The alcoholic content in Mediocre and Poor wines is noticeably on the lower end compared to the alcohol content of Excellent wine. Similarly, since density is highly correlated with alcohol content, Excellent wine is on the lower end as well because alcohol is less dense than water. Both trends are as per established from the correlation map. 
+
+```{r echo=FALSE}
+volac <- ggplot(wine, aes(x = volatile_acidity,fill=Quality)) + 
+  geom_density(alpha=0.25) +
+  geom_vline(aes(xintercept=mean(volatile_acidity[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(volatile_acidity[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(volatile_acidity[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  xlab(label = "Volatile Acidity Level") +
+  ylab(label = NULL) +
+  ggtitle("Distribution of Volatile Acidity Levels")+
+  theme_economist()
+
+fixac <- ggplot(wine, aes(x = fixed_acidity, fill=Quality)) + 
+  geom_density(alpha=0.25, show.legend = FALSE) +
+  geom_vline(aes(xintercept=mean(fixed_acidity[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(fixed_acidity[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(fixed_acidity[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  xlab(label = "Fixed Acidity Level") +
+  ylab(label = NULL) +
+  ggtitle("Fixed Acidity Levels")+
+  theme_economist()
+
+citac <- ggplot(wine, aes(x = citric_acid,fill=Quality)) + 
+  geom_density(alpha=0.25, show.legend = FALSE) +
+  geom_vline(aes(xintercept=mean(citric_acid[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(citric_acid[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(citric_acid[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  xlab(label = "Citric Acidity Level") +
+  ylab(label = NULL) +
+  ggtitle("Citric Acid Levels")+
+  theme_economist()
+
+
+
+volac / (fixac | citac)
+```
+
+These three variables show some separation between tiers which is an effect that was eliminated by the predominance of Mediocre tier observations. This shows that classifying quality scores into the three specified levels is working just how we want it to. 
+
+Volatile acidity levels refer to the concentration of acetic acid which winemakers make sure to distill out of the wine after fermentation. Its distribution reflects the previously discussed trend from the correlation map. 
+
+On the other hand, fixed acidity and citric acid levels are higher on average for Excellent compared to Mediocre and Poor. Both variables express concentrations of acids whose presence is desirable for consumers because they enrich the wine's flavor and help keep it fresh. Wines with low acidity are considered flat and bland. 
+
+
+```{r echo=FALSE}
+ph <- ggplot(wine, aes(x = p_h, fill=Quality)) + 
+  geom_density(alpha=0.25) +
+  geom_vline(aes(xintercept=mean(p_h[quality_tier=="Excellent"])),color="red",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(p_h[quality_tier=="Mediocre"])),color="green",linetype="dashed",lwd=1) +
+  geom_vline(aes(xintercept=mean(p_h[quality_tier=="Poor"])),color="blue",linetype="dashed",lwd=1) +
+  xlab(label = "pH Level") +
+  ylab(label = NULL) +
+  ggtitle("Distribution of pH Levels")+
+  theme_economist()
+ph
+```
+
+pH levels unravel an interesting trend which gives a criteria to tell Poor wine apart. On average, Poor quality wines are less acidic than both Mediocre and Excellent quality wines. It's more probable that a higher pH wine is of Poor Quality. 
+
+
+# Conclusion
+1 - Maybe more information about the grapes used and fermentation process conditions 
+such as the concentration of sugar and ripeness and type of grapes used. 
+
+2 - Residual sugars need to have a reference point to which we would understand if their concentration in the wine is a lot or not a lot. 
+
+3- The more alcoholic the wine is the higher is the quality. Many factors contribute to the alcohol content in wine such as, age, ripeness of grapes,  etc. 
+
+4- Add sugar levels in the data as well because it's a feature that consumers like. 
