@@ -12,9 +12,10 @@ library(here)
 
 
 
-# (2) Importing my csv from data folder and initializing the here function
-i_am("individual-assignment-2-saraahawi.Rproj")
-read_csv(here("./data/winequality-red.csv"))
+# (2) Importing my csv from data folder
+
+# i_am("individual-assignment-2-saraahawi.Rproj")
+# read_csv(here("./data/winequality-red.csv"))
 
 wine <- as_tibble(read_csv("./data/winequality-red.csv"))
     
