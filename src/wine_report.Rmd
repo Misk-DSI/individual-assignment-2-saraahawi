@@ -30,15 +30,16 @@ library(tidyverse)
 library(ggthemes)
 library(janitor)
 library(GGally)
+library(corrplot)
 library(prettydoc)
 library(reactable)
-library(corrplot)
 library(patchwork)
 library(here)
 
 i_am("individual-assignment-2-saraahawi.Rproj")
 wine <- read_csv(here("./data/winequality-red.csv"))
 wine <- as_tibble(wine)
+# wine <- as_tibble(read_csv("./data/winequality-red.csv"))
 wine <- distinct(wine)
 wine <- wine %>%
   clean_names()
@@ -247,11 +248,9 @@ pH levels unravel an interesting trend which gives a criteria to tell Poor wine 
 
 
 # Conclusion
-1 - Maybe more information about the grapes used and fermentation process conditions 
-such as the concentration of sugar and ripeness and type of grapes used. 
 
-2 - Residual sugars need to have a reference point to which we would understand if their concentration in the wine is a lot or not a lot. 
+To summarize our findings, most commonly mentioned keywords in this analysis were: grape, alcohol and acidity. Some might argue that sweetness is a keyword that should be also mentioned, but sugar concentration, according to this analysis, has no impact whatsoever on the quality. This can be traced back to the company producing the wines, the grapes they use, or their own fermentation process. Maybe their wine is generally not the sweetest wine you'll ever taste.
 
-3- The more alcoholic the wine is the higher is the quality. Many factors contribute to the alcohol content in wine such as, age, ripeness of grapes,  etc. 
+Higher alcoholic content make for better wines. Excessively acid concentration is not desirable, but so is too little acidity. My analysis on the dataset tells me that customers want to taste a wine that is *rich in flavor, smooth, not dry, and sweet*. It also tells me that to perfect a formula that is this sophisticated, you need a very controlled environment to make your wine and very specific criteria for choosing your grapes. 
 
-4- Add sugar levels in the data as well because it's a feature that consumers like. 
+More diversification can be applied to the dataset such as including price data for business or marketing purposes, data about the grapes used to makes the wines could give better contexts regarding the reasons why some wines were classified as Excellent or poor for reasons explained previously. Other variables can also be added such as the conditions of fermentation like the duration, ripeness of grapes, amount of sugar that could potentially be converted to alcohol, and the temperature. All of which are parameters that an R&D department can use at a company to dive in deeper and figure out how to increase sales or make better wine. These variables can also be used for soil parameter controlling and grape growing purposes by farm owners that want to increase their revenue. Residual sugar metrics can be improved by adding a reference point a.k.a the concentration of sugar at the start of the winemaking process. 
