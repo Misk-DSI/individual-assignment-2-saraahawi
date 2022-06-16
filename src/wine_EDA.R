@@ -7,14 +7,11 @@ library(corrplot)
 library(prettydoc)
 library(reactable)
 library(patchwork)
-library(forcats)
 library(here)
 
 
 
-# (2) Importing my csv from data folder and initializing the here function
-        # here("individual-assignment-2-saraahawi.Rproj")
-        # i_am("./data/winequality-red.csv")
+# (2) Importing my csv from data folder
 wine <- as_tibble(read_csv("./data/winequality-red.csv"))
     
 
